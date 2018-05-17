@@ -2,7 +2,17 @@ import Helper from '@ember/component/helper';
 import { getOwner } from '@ember/application';
 
 function hrefTo(context, targetRouteName, ...rest) {
-  let router = getOwner(context).lookup('service:router');
+  let owner = getOwner(context);
+
+  // If used in an engine, namespace the route
+  if(owner.mountPoint && targetRouteName !== 'application') {
+    targetRouteName = `${owner.mountPoint}.${targetRouteName}`;
+  }
+  return getHrefFromOwner(owner, targetRouteName, ...rest);
+}
+
+function getHrefFromOwner(owner, targetRouteName, ...rest) {
+  let router = owner.lookup('service:router');
 
   if(router === undefined) {
     return;
@@ -22,7 +32,7 @@ function hrefTo(context, targetRouteName, ...rest) {
   return router.urlFor.apply(router, args);
 }
 
-export { hrefTo };
+export { hrefTo, getHrefFromOwner };
 
 export default Helper.extend({
   compute([targetRouteName, ...rest], namedArgs) {
